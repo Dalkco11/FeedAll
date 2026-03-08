@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "feedall",
+  "version": "${version}",
+  "name": "Feed All Animals",
+  "description": "Client-side keybind to feed nearby animals using held food.",
+  "authors": [
+    "Dalkco"
+  ],
+  "contact": {
+    "sources": "https://github.com/Dalkco11/FeedAll"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "ru.lyoha.feedall.FeedAllClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.2",
+    "minecraft": "1.21.11",
+    "fabric-api": "*"
+  }
+}
