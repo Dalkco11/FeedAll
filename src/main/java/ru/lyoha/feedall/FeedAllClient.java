@@ -2,35 +2,40 @@ package ru.lyoha.feedall;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.Box;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class FeedAllClient implements ClientModInitializer {
 
-    private KeyBinding keyBinding;
+    private KeyMapping keyBinding;
+
+    public static final KeyMapping.Category CATEGORY = 
+        KeyMapping.Category.register(Identifier.fromNamespaceAndPath("feedall", "feedall"));
 
     @Override
     public void onInitializeClient() {
-        keyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+        keyBinding = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.feedall.feed",
-                InputUtil.Type.KEYSYM,
+                InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_G,
-                "category.feedall"
+                CATEGORY
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.world == null || client.interactionManager == null) {
+            if (client.player == null || client.level == null || client.gameMode == null) {
                 return;
             }
-            while (keyBinding.wasPressed()) {
+            while (keyBinding.consumeClick()) {
                 var player = client.player;
-                var world = client.world;
-                var stack = player.getMainHandStack();
+                var level = client.level;
+                var stack = player.getMainHandItem();
                 if (stack.isEmpty()) {
                     continue;
                 }
@@ -38,22 +43,22 @@ public class FeedAllClient implements ClientModInitializer {
                 double x = player.getX();
                 double y = player.getY();
                 double z = player.getZ();
-                Box box = new Box(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius);
-                var animals = world.getEntitiesByClass(AnimalEntity.class, box, entity -> true);
+                AABB box = new AABB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius);
+                var animals = level.getEntitiesOfClass(Animal.class, box, entity -> true);
                 if (animals.isEmpty()) {
                     continue;
                 }
-                for (AnimalEntity animal : animals) {
+                for (Animal animal : animals) {
                     if (!animal.isAlive()) {
                         continue;
                     }
                     if (animal.isBaby()) {
                         continue;
                     }
-                    if (!animal.isBreedingItem(stack)) {
+                    if (!animal.isFood(stack)) {
                         continue;
                     }
-                    client.interactionManager.interactEntity(player, animal, Hand.MAIN_HAND);
+                    client.gameMode.interact(player, animal, new EntityHitResult(animal), InteractionHand.MAIN_HAND);
                 }
             }
         });
