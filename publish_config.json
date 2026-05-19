@@ -1,0 +1,10 @@
+{
+  "project_id": "feedall",
+  "github_repo": "Dalkco11/FeedAll",
+  "dependencies": [
+    {
+      "project_id": "P7dR8mSH",
+      "dependency_type": "required"
+    }
+  ]
+}
